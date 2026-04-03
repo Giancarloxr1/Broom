@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm start:*)",
+      "Bash(wc -l c:/Users/gianc/broom/src/App.js c:/Users/gianc/broom/src/components/*.js)",
+      "Bash(find \"c:/Users/gianc/broom/src\" -type f \\\\\\( -name \"*.js\" -o -name \"*.jsx\" -o -name \"*.css\" \\\\\\) ! -path \"*/node_modules/*\" -exec wc -l {} +)"
+    ]
+  }
+}
