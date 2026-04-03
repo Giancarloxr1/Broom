@@ -1,229 +1,175 @@
 import { useState } from "react";
-import WelcomeCarAnim from "./WelcomeCarAnim";
-import { FI, FC } from "../data/cars";
 
-const OFFERTE_MESE = [
-  { id: 3, brand: "Audi", model: "A1", trim: "Sportback", version: "25 TFSI 95cv", cat: "Citycar", canone: 319, canoneIva: 389, anticipo: 500, durata: 36, km: 15000, carburante: "Benzina", pronta: false, shape: "citycar", color: "#1D4ED8" },
-  { id: 6, brand: "BMW", model: "Serie 3", trim: "M Sport", version: "318i 156cv", cat: "Berlina", canone: 589, canoneIva: 719, anticipo: 2000, durata: 36, km: 20000, carburante: "Benzina", pronta: false, shape: "berlina", color: "#374151" },
-  { id: 39, brand: "Volkswagen", model: "Tiguan", trim: "Elegance", version: "1.5 TSI 150cv", cat: "SUV", canone: 449, canoneIva: 548, anticipo: 1500, durata: 36, km: 20000, carburante: "Benzina", pronta: true, shape: "suv", color: "#065F46" },
-  { id: 28, brand: "Renault", model: "Zoe", trim: "Intens", version: "R135 52kWh", cat: "Citycar", canone: 269, canoneIva: 328, anticipo: 0, durata: 36, km: 10000, carburante: "Elettrico", pronta: true, shape: "citycar", color: "#7C3AED" },
+const NAV_LINKS = ["Marketplace", "Noleggio", "Flotta", "Supporto"];
+
+const FEATURES = [
+  { icon: "🔄", text: "Sincronizzazione immediata contratti", color: "#3B82F6" },
+  { icon: "🔔", text: "Alert automatici scadenze e bolli", color: "#F59E0B" },
+  { icon: "📊", text: "Reporting avanzato TCO", color: "#8B5CF6" },
 ];
-
-const QUICK = [
-  { l: "⚡ Elettriche" },
-  { l: "🌿 Ibride" },
-  { l: "🚗 City Car" },
-  { l: "🚙 SUV" },
-  { l: "BMW" },
-  { l: "Volkswagen" },
-  { l: "Fiat" },
-  { l: "Toyota" },
-];
-
-function CarSVG({ shape, color }) {
-  const paths = {
-    citycar: "M30,50 Q35,30 60,28 Q90,26 115,30 L125,50 Q100,44 60,44 Q35,44 30,50Z M35,50 Q33,58 40,62 Q47,66 55,62 Q62,58 60,50Z M100,50 Q98,58 105,62 Q112,66 120,62 Q127,58 125,50Z",
-    berlina: "M20,52 Q28,28 65,25 Q100,22 130,30 L140,52 Q115,46 70,46 Q30,46 20,52Z M25,52 Q23,61 31,65 Q39,69 48,65 Q56,61 54,52Z M110,52 Q108,61 116,65 Q124,69 133,65 Q141,61 139,52Z",
-    suv: "M18,55 Q22,28 60,24 Q100,20 132,28 L142,55 Q118,48 72,48 Q28,48 18,55Z M23,55 Q21,65 30,70 Q39,74 49,70 Q58,65 56,55Z M113,55 Q111,65 120,70 Q129,74 139,70 Q148,65 146,55Z M40,24 L40,16 Q60,14 100,14 L100,24Z",
-    commerciale: "M15,56 Q15,28 45,25 L130,25 L140,40 L142,56 Q118,50 75,50 Q30,50 15,56Z M20,56 Q18,66 27,71 Q36,75 46,71 Q55,66 53,56Z M115,56 Q113,66 122,71 Q131,75 141,71 Q150,66 148,56Z",
-  };
-  return (
-    <svg viewBox="0 0 165 90" style={{ width: "100%", maxWidth: 220, height: "auto", filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.25))" }}>
-      <defs>
-        <linearGradient id={`g${shape}`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor={color} stopOpacity="0.9" />
-          <stop offset="100%" stopColor={color} stopOpacity="0.6" />
-        </linearGradient>
-        <linearGradient id={`w${shape}`} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#93C5FD" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#1D4ED8" stopOpacity="0.3" />
-        </linearGradient>
-      </defs>
-      <path d={paths[shape] || paths.berlina} fill={`url(#g${shape})`} stroke={color} strokeWidth="1" />
-      <path d={paths[shape] || paths.berlina} fill={`url(#wberlina)`} opacity="0.15" />
-      <circle cx="43" cy="64" r="10" fill="#1F2937" stroke="#374151" strokeWidth="1.5" />
-      <circle cx="43" cy="64" r="5" fill="#6B7280" />
-      <circle cx="120" cy="64" r="10" fill="#1F2937" stroke="#374151" strokeWidth="1.5" />
-      <circle cx="120" cy="64" r="5" fill="#6B7280" />
-      <ellipse cx="82" cy="36" rx="25" ry="8" fill="#BFDBFE" opacity="0.5" />
-    </svg>
-  );
-}
 
 export default function WelcomeScreen({ pratiche, onStartClient, onDealerHow, onMieRichieste }) {
-  const [ivaIncl, setIvaIncl] = useState(false);
-  const [searchQ, setSearchQ] = useState("");
+  const [activeLink, setActiveLink] = useState("Marketplace");
 
   return (
     <div style={{ minHeight: "100vh", background: "#F4F6F9", fontFamily: "'Trebuchet MS',sans-serif" }}>
-      <nav style={{ background: "#1A1A2E", padding: "0 20px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 58, position: "sticky", top: 0, zIndex: 100 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-          <div style={{ width: 30, height: 30, background: "linear-gradient(135deg,#FF5733,#FF8C00)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15 }}>🏎</div>
-          <span style={{ fontSize: 20, fontWeight: 900, color: "#fff", letterSpacing: "-1px" }}>broom</span>
-          <span style={{ fontSize: 8, fontWeight: 700, color: "#FF5733", background: "rgba(255,87,51,0.15)", border: "1px solid rgba(255,87,51,0.3)", borderRadius: 4, padding: "2px 5px" }}>BETA</span>
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          {pratiche.length > 0 && (
-            <button onClick={onMieRichieste} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 7, padding: "6px 12px", color: "#fff", fontSize: 11, cursor: "pointer", fontFamily: "inherit" }}>
-              📋 Le mie richieste ({pratiche.length})
+
+      {/* NAVBAR */}
+      <nav style={{ background: "#fff", padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 56, position: "sticky", top: 0, zIndex: 100, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
+          <span style={{ fontSize: 20, fontWeight: 900, color: "#1A1A2E", letterSpacing: "-1px" }}>Broom</span>
+          {NAV_LINKS.map((l) => (
+            <button key={l} onClick={() => { setActiveLink(l); if (l === "Flotta") onMieRichieste(); else onStartClient(); }}
+              style={{ background: "none", border: "none", fontSize: 13, fontWeight: 600, color: activeLink === l ? "#FF5733" : "#64748B", cursor: "pointer", fontFamily: "inherit", padding: "4px 0", borderBottom: activeLink === l ? "2px solid #FF5733" : "2px solid transparent" }}>
+              {l}
             </button>
-          )}
-          <button onClick={onDealerHow} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 7, padding: "6px 12px", color: "#fff", fontSize: 11, cursor: "pointer", fontFamily: "inherit" }}>
-            Sei un dealer?
+          ))}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", background: "#F1F5F9", borderRadius: 8, padding: "7px 14px", gap: 8 }}>
+            <span style={{ fontSize: 13, color: "#94A3B8" }}>🔍</span>
+            <input placeholder="Cerca veicolo..." style={{ border: "none", background: "none", outline: "none", fontSize: 12, color: "#1A1A2E", fontFamily: "inherit", width: 120 }} />
+          </div>
+          <button onClick={onStartClient} style={{ background: "#FF5733", border: "none", borderRadius: 8, padding: "8px 16px", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+            Scarica Software
           </button>
         </div>
       </nav>
 
-      <div style={{ background: "linear-gradient(155deg,#1A1A2E 0%,#0F3460 60%,#1A1A2E 100%)", padding: "36px 20px 48px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, background: "repeating-linear-gradient(135deg,transparent,transparent 40px,rgba(255,87,51,0.03) 40px,rgba(255,87,51,0.03) 41px)", pointerEvents: "none" }} />
-        <div style={{ position: "relative" }}>
-          <h1
-            style={{
-              fontSize: "clamp(56px,17vw,108px)",
-              fontWeight: 900,
-              margin: "0 0 2px",
-              lineHeight: 0.92,
-              letterSpacing: "-0.045em",
-              background: "linear-gradient(180deg,#FFFFFF 12%,#FFB088 52%,#FF5733 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            broom
+      {/* HERO */}
+      <div style={{ background: "linear-gradient(155deg,#0a0a14 0%,#1A1A2E 40%,#0F3460 100%)", padding: "80px 32px 72px", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 70% 50%, rgba(15,52,96,0.6) 0%, transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: 0, right: 0, width: "55%", height: "100%", background: "linear-gradient(135deg, rgba(26,26,46,0.3), rgba(15,52,96,0.5))", clipPath: "polygon(20% 0, 100% 0, 100% 100%, 0% 100%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: "15%", right: "8%", width: 180, height: 90, borderRadius: 12, background: "linear-gradient(135deg, rgba(59,130,246,0.15), rgba(59,130,246,0.05))", border: "1px solid rgba(59,130,246,0.2)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: "22%", right: "12%", width: 140, height: 70, borderRadius: 8, background: "linear-gradient(135deg, rgba(6,182,212,0.1), rgba(6,182,212,0.03))", pointerEvents: "none" }} />
+
+        <div style={{ position: "relative", maxWidth: 700 }}>
+          <p style={{ color: "#FF5733", fontSize: 14, fontWeight: 700, margin: "0 0 12px", letterSpacing: "1px" }}>Broom</p>
+          <div style={{ width: 40, height: 3, background: "#FF5733", borderRadius: 2, marginBottom: 16 }} />
+          <h1 style={{ fontSize: "clamp(36px, 7vw, 64px)", fontWeight: 900, color: "#fff", margin: "0 0 4px", lineHeight: 1.05 }}>
+            Noleggio lungo<br />termine.
           </h1>
-          <WelcomeCarAnim />
-          <p style={{ color: "#E2E8F0", fontSize: "clamp(14px,3.5vw,17px)", margin: "0 0 14px", fontWeight: 600 }}>Noleggio lungo termine · Offerte reali dai dealer italiani</p>
-          <div style={{ maxWidth: 520, margin: "0 auto 28px" }}>
-            <p style={{ color: "#94A3B8", fontSize: 13, lineHeight: 1.75, margin: 0 }}>
-              <span style={{ color: "#FFAB90", fontWeight: 700 }}>Prezzi reali e trasparenti</span>
-              <span style={{ opacity: 0.35, margin: "0 0.55em" }}>·</span>
-              <span style={{ color: "#CBD5E1" }}>Risposta entro 24 ore</span>
-              <span style={{ opacity: 0.35, margin: "0 0.55em" }}>·</span>
-              <span style={{ color: "#CBD5E1" }}>40+ auto disponibili</span>
-            </p>
-          </div>
-        </div>
-
-        <div style={{ maxWidth: 560, margin: "0 auto 24px", position: "relative" }}>
-          <input
-            value={searchQ}
-            onChange={(e) => setSearchQ(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && onStartClient()}
-            placeholder="Marca, modello o caratteristica: 'ibrido', 'SUV sotto 400€'..."
-            style={{ width: "100%", padding: "14px 52px 14px 18px", borderRadius: 12, border: "none", fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: "inherit", boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
-          />
-          <button
-            onClick={onStartClient}
-            style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "linear-gradient(135deg,#FF5733,#FF8C00)", border: "none", borderRadius: 8, padding: "8px 14px", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
-          >
-            🔍
-          </button>
-        </div>
-
-        <div style={{ maxWidth: 700, margin: "0 auto" }}>
-          <p style={{ color: "#5A6680", fontSize: 11, fontWeight: 600, letterSpacing: "1px", marginBottom: 12 }}>LE RICERCHE PIÙ FREQUENTI</p>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
-            {QUICK.map((q) => (
-              <button
-                key={q.l}
-                onClick={onStartClient}
-                style={{ background: "rgba(255,255,255,0.06)", border: "1.5px solid rgba(255,255,255,0.15)", borderRadius: 6, padding: "7px 16px", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 5 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,87,51,0.15)"; e.currentTarget.style.borderColor = "rgba(255,87,51,0.4)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; }}
-              >
-                {q.l} <span style={{ opacity: 0.5 }}>›</span>
-              </button>
-            ))}
+          <h1 style={{ fontSize: "clamp(36px, 7vw, 64px)", fontWeight: 900, color: "#FF5733", margin: "0 0 20px", lineHeight: 1.05 }}>
+            Finalmente semplice.
+          </h1>
+          <p style={{ color: "#CBD5E1", fontSize: "clamp(14px, 2.5vw, 16px)", margin: "0 0 32px", maxWidth: 500, lineHeight: 1.65 }}>
+            Scegli la tua prossima auto tra centinaia di modelli pronti per la consegna. Gestione digitale, trasparente e senza sorprese.
+          </p>
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+            <button onClick={onStartClient}
+              style={{ background: "linear-gradient(135deg,#FF5733,#FF8C00)", border: "none", borderRadius: 10, padding: "14px 28px", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 8 }}>
+              Esplora Marketplace <span style={{ fontSize: 16 }}>→</span>
+            </button>
+            <button onClick={onStartClient}
+              style={{ background: "rgba(255,255,255,0.08)", border: "1.5px solid rgba(255,255,255,0.25)", borderRadius: 10, padding: "14px 28px", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", backdropFilter: "blur(8px)" }}>
+              Configura ora
+            </button>
           </div>
         </div>
       </div>
 
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "36px 20px 20px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 20 }}>
-          <div>
-            <h2 style={{ fontSize: "clamp(18px,4vw,24px)", fontWeight: 900, color: "#1A1A2E", margin: "0 0 4px" }}>LE OFFERTE DEL MESE</h2>
-            <p style={{ fontSize: 12, color: "#64748B", margin: 0 }}>Scopri le migliori offerte in pronta consegna. Servizi inclusi: RCA, Kasko, Manutenzione, Assistenza H24.</p>
+      {/* STATS */}
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "56px 32px" }}>
+        <div style={{ display: "flex", gap: 40, alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{ flex: "1 1 320px" }}>
+            <p style={{ color: "#FF5733", fontSize: 11, fontWeight: 800, letterSpacing: "2px", margin: "0 0 8px" }}>DISPONIBILITÀ</p>
+            <h2 style={{ fontSize: "clamp(24px, 5vw, 36px)", fontWeight: 900, color: "#1A1A2E", margin: "0 0 12px", lineHeight: 1.15 }}>
+              Oltre 500 veicoli in pronta consegna.
+            </h2>
+            <p style={{ fontSize: 14, color: "#64748B", lineHeight: 1.7, margin: 0, maxWidth: 380 }}>
+              Dalle citycar alle ammiraglie elettriche, la flotta Broom è pronta a soddisfare ogni esigenza aziendale e privata.
+            </p>
           </div>
-          <button
-            onClick={onStartClient}
-            style={{ background: "linear-gradient(135deg,#FF5733,#FF8C00)", border: "none", borderRadius: 8, padding: "9px 18px", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
-          >
-            Scopri tutte le offerte →
-          </button>
-        </div>
 
-        <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 10, margin: "0 0 18px 0", padding: "12px 16px", background: "linear-gradient(135deg,#F8FAFC,#EFF6FF)", borderRadius: 14, border: "1px solid #E2E8F0" }}>
-          <span style={{ fontSize: 11, color: "#475569", fontWeight: 700, marginRight: "auto" }}>Canoni nelle schede sotto</span>
-          <span style={{ fontSize: 11, color: !ivaIncl ? "#1A1A2E" : "#94A3B8", fontWeight: !ivaIncl ? 700 : 500 }}>IVA esclusa</span>
-          <button type="button" onClick={() => setIvaIncl(!ivaIncl)} style={{ width: 44, height: 24, borderRadius: 12, background: ivaIncl ? "linear-gradient(135deg,#FF5733,#FF8C00)" : "#CBD5E1", border: "none", cursor: "pointer", position: "relative", flexShrink: 0 }}>
-            <div style={{ width: 18, height: 18, background: "#fff", borderRadius: "50%", position: "absolute", top: 3, left: ivaIncl ? 23 : 3, transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }} />
-          </button>
-          <span style={{ fontSize: 11, color: ivaIncl ? "#FF5733" : "#94A3B8", fontWeight: ivaIncl ? 700 : 500 }}>IVA inclusa</span>
-        </div>
+          <div style={{ flex: "0 0 auto", opacity: 0.12, fontSize: 120, lineHeight: 1 }}>🚗</div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(min(100%,260px),1fr))", gap: 16 }}>
-          {OFFERTE_MESE.map((car) => (
-            <div
-              key={car.id}
-              style={{ background: "#fff", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 16px rgba(0,0,0,0.08)", cursor: "pointer", transition: "transform 0.2s,box-shadow 0.2s", display: "flex", flexDirection: "column", minHeight: 440 }}
-              onClick={onStartClient}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 12px 32px rgba(0,0,0,0.14)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 2px 16px rgba(0,0,0,0.08)"; }}
-            >
-              <div style={{ background: "linear-gradient(135deg,#0F1923,#1A2744)", padding: "24px 16px 16px", display: "flex", flexDirection: "column", alignItems: "center", minHeight: 130, position: "relative" }}>
-                {car.pronta && <span style={{ position: "absolute", top: 10, left: 10, background: "rgba(16,185,129,0.9)", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontWeight: 700, color: "#fff" }}>⚡ Pronta consegna</span>}
-                <span style={{ position: "absolute", top: 10, right: 10, background: `${FC[car.carburante] || "#374151"}33`, border: `1px solid ${FC[car.carburante] || "#374151"}`, borderRadius: 20, padding: "2px 7px", fontSize: 8, fontWeight: 700, color: FC[car.carburante] || "#fff" }}>
-                  {FI[car.carburante] || ""} {car.carburante}
-                </span>
-                <CarSVG shape={car.shape} color={car.color} />
+          <div style={{ display: "flex", gap: 16, flex: "1 1 300px", justifyContent: "flex-end", flexWrap: "wrap" }}>
+            <div style={{ background: "linear-gradient(135deg,#FF5733,#FF8C00)", borderRadius: 16, padding: "28px 32px", minWidth: 160, color: "#fff" }}>
+              <span style={{ fontSize: 28 }}>⚡</span>
+              <p style={{ fontSize: "clamp(28px, 5vw, 42px)", fontWeight: 900, margin: "8px 0 4px" }}>100%</p>
+              <p style={{ fontSize: 13, fontWeight: 600, opacity: 0.9, margin: 0 }}>Processo Digital</p>
+            </div>
+            <div style={{ background: "#1A1A2E", borderRadius: 16, padding: "28px 32px", minWidth: 160, color: "#fff" }}>
+              <span style={{ fontSize: 28 }}>✅</span>
+              <p style={{ fontSize: "clamp(28px, 5vw, 42px)", fontWeight: 900, margin: "8px 0 4px" }}>0€</p>
+              <p style={{ fontSize: 13, fontWeight: 600, opacity: 0.7, margin: 0 }}>Anticipo opzionale</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* FLEET MANAGEMENT */}
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 32px 56px" }}>
+        <div style={{ background: "#fff", borderRadius: 24, padding: "48px 40px", boxShadow: "0 4px 32px rgba(0,0,0,0.06)", display: "flex", gap: 40, alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{ flex: "1 1 340px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+              <div style={{ width: 36, height: 36, background: "linear-gradient(135deg,#FF5733,#FF8C00)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: "#fff", fontWeight: 900 }}>📊</div>
+              <h3 style={{ fontSize: 20, fontWeight: 900, color: "#1A1A2E", margin: 0 }}>Broom Fleet Management</h3>
+            </div>
+            <p style={{ fontSize: 14, color: "#64748B", lineHeight: 1.7, margin: "0 0 24px" }}>
+              La soluzione definitiva per gestire la tua flotta aziendale. Integrazione nativa con il Marketplace Broom per un monitoraggio in tempo reale, alert intelligenti sulla manutenzione e analisi dei costi granulare.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 28 }}>
+              {FEATURES.map((f) => (
+                <div key={f.text} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: `${f.color}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>{f.icon}</div>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#1A1A2E" }}>{f.text}</span>
+                </div>
+              ))}
+            </div>
+            <button onClick={onStartClient}
+              style={{ background: "linear-gradient(135deg,#FF5733,#FF8C00)", border: "none", borderRadius: 10, padding: "12px 24px", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 8 }}>
+              <span>⬇</span> Scarica il Software
+            </button>
+          </div>
+
+          {/* Dashboard Preview */}
+          <div style={{ flex: "1 1 340px", position: "relative" }}>
+            <div style={{ background: "linear-gradient(135deg, #0F1923, #1A2744)", borderRadius: 16, padding: 20, boxShadow: "0 8px 40px rgba(0,0,0,0.2)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 16 }}>
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#EF4444" }} />
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#F59E0B" }} />
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#22C55E" }} />
+                <span style={{ fontSize: 10, color: "#475569", marginLeft: 8 }}>Fleet Dashboard</span>
               </div>
-
-              <div style={{ padding: "14px 16px", flex: 1, display: "flex", flexDirection: "column" }}>
-                <p style={{ fontSize: 10, color: "#94A3B8", fontWeight: 600, margin: "0 0 2px 0" }}>{car.brand.toUpperCase()}</p>
-                <p style={{ fontSize: 15, fontWeight: 900, color: "#1A1A2E", margin: "0 0 1px 0" }}>
-                  {car.model} <span style={{ color: "#FF5733", fontWeight: 700 }}>{car.trim}</span>
-                </p>
-                <p style={{ fontSize: 11, color: "#94A3B8", margin: "0 0 12px 0" }}>{car.version}</p>
-
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 8 }}>
-                  <div>
-                    <p style={{ fontSize: 10, color: "#94A3B8", margin: "0 0 1px 0" }}>{ivaIncl ? "IVA INCLUSA" : "IVA ESCLUSA"}</p>
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
-                      <span style={{ fontSize: 30, fontWeight: 900, color: "#1A1A2E", lineHeight: 1 }}>{(ivaIncl ? car.canoneIva : car.canone).toLocaleString("it-IT")}</span>
-                      <span style={{ fontSize: 12, color: "#94A3B8", fontWeight: 600 }}>€/mese</span>
-                    </div>
-                    <p style={{ fontSize: 10, color: "#64748B", margin: "2px 0 0 0" }}>
-                      Anticipo €{car.anticipo.toLocaleString("it-IT")} · {car.durata}m · {car.km / 1000}k km
-                    </p>
-                  </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+                <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: 12 }}>
+                  <p style={{ fontSize: 9, color: "#64748B", margin: "0 0 4px" }}>Veicoli attivi</p>
+                  <p style={{ fontSize: 22, fontWeight: 900, color: "#fff", margin: 0 }}>156</p>
                 </div>
-
-                <div style={{ display: "flex", gap: 4, marginBottom: 12, flexWrap: "wrap" }}>
-                  {["RCA", "Kasko", "Manutenzione", "Assist. H24"].map((s) => (
-                    <span key={s} style={{ background: "#F0FDF4", borderRadius: 4, padding: "2px 6px", fontSize: 8, color: "#16A34A", fontWeight: 600 }}>
-                      ✓ {s}
-                    </span>
+                <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: 12 }}>
+                  <p style={{ fontSize: 9, color: "#64748B", margin: "0 0 4px" }}>Costo medio</p>
+                  <p style={{ fontSize: 22, fontWeight: 900, color: "#22C55E", margin: 0 }}>€387</p>
+                </div>
+              </div>
+              <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: 12 }}>
+                <p style={{ fontSize: 9, color: "#64748B", margin: "0 0 8px" }}>Contratti in scadenza</p>
+                <div style={{ display: "flex", gap: 4 }}>
+                  {[65, 40, 80, 55, 70, 45, 90].map((h, i) => (
+                    <div key={i} style={{ flex: 1, height: h * 0.5, background: `linear-gradient(180deg, ${i === 6 ? "#FF5733" : "#3B82F6"}, ${i === 6 ? "#FF8C00" : "#1D4ED8"})`, borderRadius: 3, opacity: 0.8 }} />
                   ))}
-                </div>
-
-                <div style={{ marginTop: "auto", paddingTop: 8, display: "flex", gap: 8 }}>
-                  <button onClick={(e) => { e.stopPropagation(); onStartClient(); }} style={{ flex: 1, background: "#1A1A2E", border: "none", borderRadius: 8, padding: "10px", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-                    Blocca offerta
-                  </button>
-                  <button onClick={(e) => { e.stopPropagation(); onStartClient(); }} style={{ flex: 1, background: "linear-gradient(135deg,#FF5733,#FF8C00)", border: "none", borderRadius: 8, padding: "10px", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-                    Richiedi preventivo
-                  </button>
                 </div>
               </div>
             </div>
-          ))}
+
+            {/* Alert Card Overlay */}
+            <div style={{ position: "absolute", bottom: -12, left: -12, background: "#fff", borderRadius: 12, padding: "10px 16px", boxShadow: "0 4px 20px rgba(0,0,0,0.12)", display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 3, height: 36, background: "#EF4444", borderRadius: 2 }} />
+              <div>
+                <p style={{ fontSize: 8, color: "#EF4444", fontWeight: 800, letterSpacing: "0.5px", margin: "0 0 2px" }}>VEICOLI CON ALERT</p>
+                <p style={{ fontSize: 22, fontWeight: 900, color: "#1A1A2E", margin: "0 0 1px" }}>12</p>
+                <p style={{ fontSize: 8, fontWeight: 700, color: "#EF4444", margin: 0 }}>Intervento richiesto immediato</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div style={{ background: "linear-gradient(135deg,#1A1A2E,#0F3460)", padding: "32px 20px", textAlign: "center", marginTop: 20 }}>
-        <p style={{ color: "#fff", fontSize: "clamp(16px,4vw,20px)", fontWeight: 900, margin: "0 0 8px" }}>Dealer? Pubblica le tue offerte su broom.</p>
-        <p style={{ color: "#5A6680", fontSize: 13, margin: "0 0 16px" }}>Raggiungi migliaia di clienti qualificati. Zero costi fissi.</p>
-        <button onClick={onDealerHow} style={{ background: "linear-gradient(135deg,#FF5733,#FF8C00)", border: "none", borderRadius: 10, padding: "12px 28px", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+      {/* DEALER CTA */}
+      <div style={{ background: "linear-gradient(135deg,#1A1A2E,#0F3460)", padding: "40px 32px", textAlign: "center" }}>
+        <p style={{ color: "#fff", fontSize: "clamp(16px,4vw,22px)", fontWeight: 900, margin: "0 0 8px" }}>Dealer? Pubblica le tue offerte su Broom.</p>
+        <p style={{ color: "#5A6680", fontSize: 13, margin: "0 0 18px" }}>Raggiungi migliaia di clienti qualificati. Zero costi fissi.</p>
+        <button onClick={onDealerHow} style={{ background: "linear-gradient(135deg,#FF5733,#FF8C00)", border: "none", borderRadius: 10, padding: "13px 28px", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
           Registrati come dealer →
         </button>
       </div>
